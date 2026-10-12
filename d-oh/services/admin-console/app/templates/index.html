@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}D-OH Admin Console{% endblock %}
+{% block content %}
+<h1>Painel administrativo D-OH</h1>
+<p class="hint">Ferramenta operacional para o time que administra a rede (Trust Anchor/consorcio) — nao e' a carteira do paciente.</p>
+
+<div class="card">
+  <h2>1. Entidades</h2>
+  <p>Registro auditavel de quem foi credenciado na rede (trust-registry). <a href="/entities">Ver entidades →</a></p>
+</div>
+
+<div class="card">
+  <h2>2. DIDs / wallets</h2>
+  <p>Criar/listar DIDs nas wallets ACA-Py de cada agente. <a href="/dids">Ver DIDs →</a></p>
+</div>
+
+<div class="card">
+  <h2>3. Conexoes DIDComm</h2>
+  <p>Pre-requisito para credenciar papel ou emitir EHR: estabelecer conexao entre dois agentes. <a href="/connections">Ver conexoes →</a></p>
+</div>
+
+<div class="card">
+  <h2>4. Credenciar papel</h2>
+  <p>Conecta o Trust Anchor a um agente e emite a EntityRoleCredential (hospital, clinica, laboratorio, medico, plano de saude). <a href="/roles/onboard">Credenciar →</a></p>
+</div>
+
+<div class="card">
+  <h2>5. Emitir EHR simples</h2>
+  <p>Emite uma DiagnosticReportCredential via fhir-vc-bridge para uma conexao ja estabelecida. <a href="/ehr/issue">Emitir →</a></p>
+</div>
+{% endblock %}

@@ -1,0 +1,35 @@
+# Agente ACA-Py do verificador "Medico" (Secao 3.2 do paper D-OH)
+#
+# Papel central na interacao com o paciente: solicita apresentacao de
+# credenciais (present-proof-2.0) mediante consentimento do titular, nunca
+# acessa dados diretamente de terceiros. Tambem pode registrar diagnosticos
+# e prescricoes atuando como emissor (reaproveitar o padrao de
+# agents/issuer-*).
+
+label: "Medico-Verificador"
+
+auto-provision: true
+# askar-anoncreds (nao "askar" puro): exigido para processar
+# present-proof-2.0 no formato anoncreds contra credenciais emitidas com
+# esse mesmo perfil (ver demais agentes).
+wallet-type: askar-anoncreds
+wallet-name: verifier_medico_wallet
+
+log-level: info
+
+# DEV ONLY — em producao trocar por --admin-api-key e TLS reverso
+admin-insecure-mode: true
+
+endorser-protocol-role: author
+
+auto-accept-invites: true
+auto-accept-requests: true
+auto-ping-connection: true
+auto-respond-messages: true
+
+# Solicitacoes de prova sao disparadas explicitamente (ver
+# scripts/demo_present_proof.sh), nao automaticamente.
+auto-verify-presentation: true
+
+monitor-ping: true
+preserve-exchange-records: true

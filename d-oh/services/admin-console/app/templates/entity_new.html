@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Registrar entidade — D-OH Admin{% endblock %}
+{% block content %}
+<h1>Registrar entidade manualmente</h1>
+<p class="hint">Isto so' escreve no indice do trust-registry — nao emite a EntityRoleCredential criptografica.
+Para credenciar de verdade (conexao + credencial + registro), use <a href="/roles/onboard">Credenciar papel</a>.</p>
+
+<form class="card" method="post" action="/entities/new">
+  <label>DID da entidade</label>
+  <input type="text" name="did" placeholder="did:sov:..." required>
+
+  <label>Nome</label>
+  <input type="text" name="name" placeholder="Hospital Geral do Estado" required>
+
+  <label>Papel</label>
+  <select name="role" required>
+    {% for r in roles %}<option value="{{ r }}">{{ r }}</option>{% endfor %}
+  </select>
+
+  <label>DID de quem registrou (Trust Anchor)</label>
+  <input type="text" name="registered_by" placeholder="did:sov:..." required>
+
+  <button type="submit">Registrar</button>
+</form>
+{% endblock %}

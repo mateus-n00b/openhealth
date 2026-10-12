@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Conexoes — D-OH Admin{% endblock %}
+{% block content %}
+<h1>Conexoes DIDComm</h1>
+<p class="hint">Necessario antes de credenciar papel (Trust Anchor ↔ emissor) ou emitir EHR (emissor ↔ HealthDID).
+Para o fluxo de papel, prefira <a href="/roles/onboard">Credenciar papel</a> — ele faz convite+recebimento
+automaticamente. Use esta pagina para conexoes emissor ↔ HealthDID (necessarias para emitir EHR).</p>
+
+<form class="card" method="get" action="/connections">
+  <label>Agente</label>
+  <select name="agent" onchange="this.form.submit()">
+    {% for key, a in agents.items() %}
+    <option value="{{ key }}" {% if key == selected_agent %}selected{% endif %}>{{ a.label }}</option>
+    {% endfor %}
+  </select>
+</form>
+
+{% if error %}<div class="error">{{ error }}</div>{% endif %}
+
+<table>
+  <thead><tr><th>connection_id</th><th>Alias</th><th>Estado</th><th>Their label</th></tr></thead>
+  <tbody>
+    {% for c in connections %}
+    <tr>
+      <td>{{ c.connection_id }}</td>
+      <td>{{ c.alias }}</td>
+      <td>{{ c.state }}</td>
+      <td>{{ c.their_label }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="4" class="hint">Nenhuma conexao neste agente ainda.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<div class="card">
+  <h2>1. Criar convite (agente convidador)</h2>
+  <form method="post" action="/connections/invite">
+    <label>Agente que convida</label>
+    <select name="agent">
+      {% for key, a in agents.items() %}
+      <option value="{{ key }}" {% if key == selected_agent %}selected{% endif %}>{{ a.label }}</option>
+      {% endfor %}
+    </select>
+    <label>Alias (opcional)</label>
+    <input type="text" name="alias" placeholder="conexao-com-paciente">
+    <button type="submit">Criar convite</button>
+  </form>
+
+  {% if invitation %}
+  <p class="hint">Copie o bloco <code>invitation</code> abaixo e cole no formulario "Receber convite" do OUTRO agente:</p>
+  <pre>{{ invitation.invitation | tojson(indent=2) }}</pre>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>2. Receber convite (agente convidado)</h2>
+  <form method="post" action="/connections/receive">
+    <label>Agente que recebe</label>
+    <select name="agent">
+      {% for key, a in agents.items() %}
+      <option value="{{ key }}">{{ a.label }}</option>
+      {% endfor %}
+    </select>
+    <label>JSON do convite (campo "invitation" copiado acima)</label>
+    <textarea name="invitation_json" rows="6" placeholder='{"type": "...", "id": "...", ...}' required></textarea>
+    <button type="submit">Receber convite</button>
+  </form>
+</div>
+{% endblock %}

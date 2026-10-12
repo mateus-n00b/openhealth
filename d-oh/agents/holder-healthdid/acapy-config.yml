@@ -1,0 +1,49 @@
+# Agente ACA-Py que serve de backend para a carteira HealthDID (Titular)
+#
+# O paper (Secao 3.3.1) usa explicitamente uma "carteira web ... askar-anoncreds
+# ... gerenciada pelo agente de credenciais digitais e identidade: Aca-py".
+# Esta instancia representa esse backend para a PoC (single-tenant).
+#
+# ATENCAO — escala para producao: um agente por paciente nao escala para o
+# SUS. Em producao, substituir por ACA-Py multi-tenant (--multitenant
+# --multitenant-admin, sub-wallet por paciente via /multitenancy/wallet) com
+# um app movel (ex. Aries Bifold) ou wallet web consumindo a admin API de
+# cada sub-wallet atraves de um BFF autenticado. Ver wallet-healthdid/README.md.
+
+label: "HealthDID-Wallet"
+
+auto-provision: true
+# askar-anoncreds (nao "askar" puro): a wallet askar-anoncreds citada no
+# paper (Secao 3.3.1) exige este perfil para receber/armazenar credenciais
+# emitidas no formato anoncreds e para construir provas de nao-revogacao.
+wallet-type: askar-anoncreds
+wallet-name: healthdid_wallet
+
+log-level: info
+
+# DEV ONLY — em producao trocar por --admin-api-key e TLS reverso
+admin-insecure-mode: true
+
+# O titular nunca emite/endossa transacoes no ledger
+endorser-protocol-role: none
+
+# O paciente decide manualmente convites/solicitacoes de prova em producao
+# (consentimento explicito — requisito de LGPD citado no paper). Para a PoC
+# em dev, auto-accept facilita os fluxos de demonstracao.
+auto-accept-invites: true
+auto-accept-requests: true
+auto-ping-connection: true
+auto-respond-messages: true
+
+# Credenciais sao recebidas e armazenadas automaticamente na PoC; em
+# producao a HealthDID deve exibir a oferta e pedir confirmacao do titular
+# antes de --auto-store-credential.
+auto-respond-credential-offer: true
+auto-store-credential: true
+
+# Apresentacao de provas (ZKP / divulgacao seletiva) tambem deve, em
+# producao, pedir confirmacao explicita do titular antes de responder.
+auto-respond-presentation-request: false
+
+monitor-ping: true
+preserve-exchange-records: true

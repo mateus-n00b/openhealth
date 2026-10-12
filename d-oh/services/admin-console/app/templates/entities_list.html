@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Entidades — D-OH Admin{% endblock %}
+{% block content %}
+<h1>Entidades registradas</h1>
+<p><a href="/entities/new">+ Registrar entidade manualmente</a> — normalmente use <a href="/roles/onboard">Credenciar papel</a>, que faz isso automaticamente junto com a emissao da credencial.</p>
+{% if error %}<div class="error">{{ error }}</div>{% endif %}
+
+<table>
+  <thead>
+    <tr><th>DID</th><th>Nome</th><th>Papel</th><th>Status</th><th>Registrado por</th><th>Em</th><th></th></tr>
+  </thead>
+  <tbody>
+    {% for e in entities %}
+    <tr>
+      <td>{{ e.did }}</td>
+      <td>{{ e.name }}</td>
+      <td>{{ e.role }}</td>
+      <td><span class="pill {{ e.status }}">{{ e.status }}</span></td>
+      <td>{{ e.registered_by }}</td>
+      <td>{{ e.registered_at }}</td>
+      <td>
+        {% if e.status == "active" %}
+        <form class="inline" method="post" action="/entities/{{ e.did }}/revoke">
+          <button class="danger" type="submit">Revogar</button>
+        </form>
+        {% endif %}
+      </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="7" class="hint">Nenhuma entidade registrada ainda.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

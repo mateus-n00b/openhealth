@@ -1,0 +1,272 @@
+# D-OH — ambiente de desenvolvimento
+#
+# ATENCAO: admin-insecure-mode e chaves em texto plano sao apenas para
+# desenvolvimento local. Ver README.md e cada acapy-config.yml para notas
+# de hardening antes de qualquer uso em homologacao/producao.
+
+x-acapy-image: &acapy-image ghcr.io/openwallet-foundation/acapy-agent:py3.12-1.3.1
+# ^ ajustar para a tag estavel mais recente do ACA-Py (OpenWallet Foundation)
+
+services:
+
+  # ---------------------------------------------------------------------
+  # Infra compartilhada
+  # ---------------------------------------------------------------------
+
+  tails-server:
+    image: ghcr.io/bcgov/tails-server:latest
+    restart: on-failure
+    command: >
+      tails-server
+      --host 0.0.0.0
+      --port 6543
+      --storage-path /tmp/tails-storage
+      --log-level INFO
+    ports:
+      - "6543:6543"
+    volumes:
+      - tails-storage:/tmp/tails-storage
+
+  ipfs:
+    image: ipfs/kubo:latest
+    restart: on-failure
+    ports:
+      - "5001:5001"   # API — usada pelo services/ipfs-anchor
+      - "8081:8080"   # Gateway HTTP
+    volumes:
+      - ipfs-data:/data/ipfs
+
+  # ---------------------------------------------------------------------
+  # Governanca — Ministerio da Saude (Trust Anchor, Fig. 2 do paper)
+  # ---------------------------------------------------------------------
+
+  trust-anchor:
+    image: *acapy-image
+    restart: on-failure
+    command: >
+      start
+      --arg-file /home/aries/config/acapy-config.yml
+      --genesis-url ${GENESIS_URL}
+      --inbound-transport http 0.0.0.0 ${TRUST_ANCHOR_INBOUND_PORT}
+      --outbound-transport http
+      --endpoint http://trust-anchor:${TRUST_ANCHOR_INBOUND_PORT}
+      --admin 0.0.0.0 ${TRUST_ANCHOR_ADMIN_PORT}
+      --seed ${TRUST_ANCHOR_SEED}
+      --wallet-key ${TRUST_ANCHOR_WALLET_KEY}
+      --tails-server-base-url ${TAILS_SERVER_URL}
+    volumes:
+      - ./governance/trust-anchor/acapy-config.yml:/home/aries/config/acapy-config.yml:ro
+    ports:
+      - "${TRUST_ANCHOR_INBOUND_PORT}:${TRUST_ANCHOR_INBOUND_PORT}"
+      - "${TRUST_ANCHOR_ADMIN_PORT}:${TRUST_ANCHOR_ADMIN_PORT}"
+    depends_on: [tails-server]
+
+  # ---------------------------------------------------------------------
+  # Emissores (Hospitais, Clinicas, Laboratorios — Secao 3.2 do paper)
+  # ---------------------------------------------------------------------
+
+  issuer-hospital:
+    image: *acapy-image
+    restart: on-failure
+    command: >
+      start
+      --arg-file /home/aries/config/acapy-config.yml
+      --genesis-url ${GENESIS_URL}
+      --inbound-transport http 0.0.0.0 ${ISSUER_HOSPITAL_INBOUND_PORT}
+      --outbound-transport http
+      --endpoint http://issuer-hospital:${ISSUER_HOSPITAL_INBOUND_PORT}
+      --admin 0.0.0.0 ${ISSUER_HOSPITAL_ADMIN_PORT}
+      --wallet-key ${ISSUER_HOSPITAL_WALLET_KEY}
+      --seed ${ISSUER_HOSPITAL_SEED}
+      --tails-server-base-url ${TAILS_SERVER_URL}
+    volumes:
+      - ./agents/issuer-hospital/acapy-config.yml:/home/aries/config/acapy-config.yml:ro
+    ports:
+      - "${ISSUER_HOSPITAL_INBOUND_PORT}:${ISSUER_HOSPITAL_INBOUND_PORT}"
+      - "${ISSUER_HOSPITAL_ADMIN_PORT}:${ISSUER_HOSPITAL_ADMIN_PORT}"
+    depends_on: [tails-server]
+
+  issuer-clinic:
+    image: *acapy-image
+    restart: on-failure
+    command: >
+      start
+      --arg-file /home/aries/config/acapy-config.yml
+      --genesis-url ${GENESIS_URL}
+      --inbound-transport http 0.0.0.0 ${ISSUER_CLINIC_INBOUND_PORT}
+      --outbound-transport http
+      --endpoint http://issuer-clinic:${ISSUER_CLINIC_INBOUND_PORT}
+      --admin 0.0.0.0 ${ISSUER_CLINIC_ADMIN_PORT}
+      --wallet-key ${ISSUER_CLINIC_WALLET_KEY}
+      --tails-server-base-url ${TAILS_SERVER_URL}
+      --seed ${ISSUER_CLINIC_SEED}
+    volumes:
+      - ./agents/issuer-clinic/acapy-config.yml:/home/aries/config/acapy-config.yml:ro
+    ports:
+      - "${ISSUER_CLINIC_INBOUND_PORT}:${ISSUER_CLINIC_INBOUND_PORT}"
+      - "${ISSUER_CLINIC_ADMIN_PORT}:${ISSUER_CLINIC_ADMIN_PORT}"
+    depends_on: [tails-server]
+
+  issuer-lab:
+    image: *acapy-image
+    restart: on-failure
+    command: >
+      start
+      --arg-file /home/aries/config/acapy-config.yml
+      --genesis-url ${GENESIS_URL}
+      --inbound-transport http 0.0.0.0 ${ISSUER_LAB_INBOUND_PORT}
+      --outbound-transport http
+      --endpoint http://issuer-lab:${ISSUER_LAB_INBOUND_PORT}
+      --admin 0.0.0.0 ${ISSUER_LAB_ADMIN_PORT}
+      --wallet-key ${ISSUER_LAB_WALLET_KEY}
+      --tails-server-base-url ${TAILS_SERVER_URL}
+    volumes:
+      - ./agents/issuer-lab/acapy-config.yml:/home/aries/config/acapy-config.yml:ro
+    ports:
+      - "${ISSUER_LAB_INBOUND_PORT}:${ISSUER_LAB_INBOUND_PORT}"
+      - "${ISSUER_LAB_ADMIN_PORT}:${ISSUER_LAB_ADMIN_PORT}"
+    depends_on: [tails-server]
+
+  # ---------------------------------------------------------------------
+  # Titular — carteira HealthDID (custodia do paciente)
+  # ---------------------------------------------------------------------
+
+  holder-healthdid:
+    image: *acapy-image
+    restart: on-failure
+    command: >
+      start
+      --arg-file /home/aries/config/acapy-config.yml
+      --genesis-url ${GENESIS_URL}
+      --inbound-transport http 0.0.0.0 ${HOLDER_HEALTHDID_INBOUND_PORT}
+      --outbound-transport http
+      --endpoint http://holder-healthdid:${HOLDER_HEALTHDID_INBOUND_PORT}
+      --admin 0.0.0.0 ${HOLDER_HEALTHDID_ADMIN_PORT}
+      --wallet-key ${HOLDER_HEALTHDID_WALLET_KEY}
+      --tails-server-base-url ${TAILS_SERVER_URL}
+    volumes:
+      - ./agents/holder-healthdid/acapy-config.yml:/home/aries/config/acapy-config.yml:ro
+    ports:
+      - "${HOLDER_HEALTHDID_INBOUND_PORT}:${HOLDER_HEALTHDID_INBOUND_PORT}"
+      - "${HOLDER_HEALTHDID_ADMIN_PORT}:${HOLDER_HEALTHDID_ADMIN_PORT}"
+    depends_on: [tails-server]
+
+  # ---------------------------------------------------------------------
+  # Verificador (ex. medico consultando historico mediante consentimento)
+  # ---------------------------------------------------------------------
+
+  verifier-medico:
+    image: *acapy-image
+    restart: on-failure
+    command: >
+      start
+      --arg-file /home/aries/config/acapy-config.yml
+      --genesis-url ${GENESIS_URL}
+      --inbound-transport http 0.0.0.0 ${VERIFIER_MEDICO_INBOUND_PORT}
+      --outbound-transport http
+      --endpoint http://verifier-medico:${VERIFIER_MEDICO_INBOUND_PORT}
+      --admin 0.0.0.0 ${VERIFIER_MEDICO_ADMIN_PORT}
+      --wallet-key ${VERIFIER_MEDICO_WALLET_KEY}
+      --tails-server-base-url ${TAILS_SERVER_URL}
+    volumes:
+      - ./agents/verifier-medico/acapy-config.yml:/home/aries/config/acapy-config.yml:ro
+    ports:
+      - "${VERIFIER_MEDICO_INBOUND_PORT}:${VERIFIER_MEDICO_INBOUND_PORT}"
+      - "${VERIFIER_MEDICO_ADMIN_PORT}:${VERIFIER_MEDICO_ADMIN_PORT}"
+    depends_on: [tails-server]
+
+  # ---------------------------------------------------------------------
+  # Servicos de aplicacao (fora do runtime ACA-Py)
+  # ---------------------------------------------------------------------
+
+  trust-registry:
+    build: ./services/trust-registry
+    restart: on-failure
+    environment:
+      - PORT=${TRUST_REGISTRY_PORT}
+    ports:
+      - "${TRUST_REGISTRY_PORT}:${TRUST_REGISTRY_PORT}"
+    volumes:
+      - trust-registry-data:/data
+
+  # Backup de chaves (escrow) do emissor "Hospital" — ver docstring em
+  # services/key-escrow/app/main.py sobre por que e' uma instancia por
+  # emissor. Replicar este bloco (com sua propria KEK e volume) para cada
+  # emissor adicional; nunca apontar dois emissores para a mesma instancia.
+  key-escrow-hospital:
+    build: ./services/key-escrow
+    restart: on-failure
+    environment:
+      - PORT=${KEY_ESCROW_PORT}
+      - KEY_ESCROW_MASTER_KEY=${KEY_ESCROW_HOSPITAL_MASTER_KEY}
+    ports:
+      - "${KEY_ESCROW_PORT}:${KEY_ESCROW_PORT}"
+    volumes:
+      - key-escrow-hospital-data:/data
+
+  ipfs-anchor:
+    build: ./services/ipfs-anchor
+    restart: on-failure
+    environment:
+      - PORT=${IPFS_ANCHOR_PORT}
+      - IPFS_API_URL=${IPFS_API_URL}
+      - IPFS_GATEWAY_URL=${IPFS_GATEWAY_URL}
+    ports:
+      - "${IPFS_ANCHOR_PORT}:${IPFS_ANCHOR_PORT}"
+    depends_on: [ipfs]
+
+  fhir-vc-bridge:
+    build: ./services/fhir-vc-bridge
+    restart: on-failure
+    environment:
+      - PORT=${FHIR_VC_BRIDGE_PORT}
+      - IPFS_ANCHOR_URL=http://ipfs-anchor:${IPFS_ANCHOR_PORT}
+      - TRUST_REGISTRY_URL=http://trust-registry:${TRUST_REGISTRY_PORT}
+      # key-escrow do MESMO emissor que ACAPY_ISSUER_ADMIN_URL abaixo —
+      # se o emissor padrao mudar, este par tem que mudar junto.
+      - KEY_ESCROW_URL=http://key-escrow-hospital:${KEY_ESCROW_PORT}
+      # issuer padrao do bridge neste ambiente de dev; em producao o bridge
+      # deve ser parametrizado por emissor (multi-tenant) — ver TODO no codigo
+      - ACAPY_ISSUER_ADMIN_URL=http://issuer-hospital:${ISSUER_HOSPITAL_ADMIN_PORT}
+      - ACAPY_ADMIN_API_KEY=${ISSUER_HOSPITAL_ADMIN_API_KEY}
+    ports:
+      - "${FHIR_VC_BRIDGE_PORT}:9000"
+    depends_on: [issuer-hospital, ipfs-anchor, trust-registry, key-escrow-hospital]
+
+  # ---------------------------------------------------------------------
+  # Painel administrativo web (CRUD de entidades/DIDs/papeis + emissao de
+  # EHR simples) — ferramenta operacional do time do consorcio, nao a
+  # HealthDID do paciente. Ver services/admin-console/app/config.py.
+  # ---------------------------------------------------------------------
+
+  admin-console:
+    build: ./services/admin-console
+    restart: on-failure
+    environment:
+      - PORT=${ADMIN_CONSOLE_PORT}
+      - TRUST_REGISTRY_URL=http://trust-registry:${TRUST_REGISTRY_PORT}
+      - FHIR_VC_BRIDGE_URL=http://fhir-vc-bridge:9000
+      - TRUST_ANCHOR_ADMIN_URL=http://trust-anchor:${TRUST_ANCHOR_ADMIN_PORT}
+      - TRUST_ANCHOR_ADMIN_API_KEY=${TRUST_ANCHOR_ADMIN_API_KEY}
+      - ISSUER_HOSPITAL_ADMIN_URL=http://issuer-hospital:${ISSUER_HOSPITAL_ADMIN_PORT}
+      - ISSUER_HOSPITAL_ADMIN_API_KEY=${ISSUER_HOSPITAL_ADMIN_API_KEY}
+      - ISSUER_CLINIC_ADMIN_URL=http://issuer-clinic:${ISSUER_CLINIC_ADMIN_PORT}
+      - ISSUER_CLINIC_ADMIN_API_KEY=${ISSUER_CLINIC_ADMIN_API_KEY}
+      - ISSUER_LAB_ADMIN_URL=http://issuer-lab:${ISSUER_LAB_ADMIN_PORT}
+      - ISSUER_LAB_ADMIN_API_KEY=${ISSUER_LAB_ADMIN_API_KEY}
+      - VERIFIER_MEDICO_ADMIN_URL=http://verifier-medico:${VERIFIER_MEDICO_ADMIN_PORT}
+      - VERIFIER_MEDICO_ADMIN_API_KEY=${VERIFIER_MEDICO_ADMIN_API_KEY}
+      - HOLDER_HEALTHDID_ADMIN_URL=http://holder-healthdid:${HOLDER_HEALTHDID_ADMIN_PORT}
+      - HOLDER_HEALTHDID_ADMIN_API_KEY=${HOLDER_HEALTHDID_ADMIN_API_KEY}
+    ports:
+      # porta interna fixa em 9010 (hardcoded no Dockerfile/CMD); so' a
+      # porta externa e' configuravel via ADMIN_CONSOLE_PORT
+      - "${ADMIN_CONSOLE_PORT}:9010"
+    depends_on:
+      [trust-registry, fhir-vc-bridge, trust-anchor, issuer-hospital, issuer-clinic, issuer-lab, verifier-medico, holder-healthdid]
+
+volumes:
+  tails-storage:
+  ipfs-data:
+  trust-registry-data:
+  key-escrow-hospital-data:

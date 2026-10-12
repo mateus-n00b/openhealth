@@ -1,0 +1,43 @@
+# Agente ACA-Py do emissor "Hospital" (Secao 3.2 do paper D-OH)
+#
+# Papel: emite VCs de exames/atestados de saude (ex. DiagnosticReportCredential,
+# ver services/fhir-vc-bridge/app/fhir_mapper.py — Algoritmo 1 do paper) para o
+# titular (HealthDID) e atua tambem como verificador ao solicitar historico do
+# paciente mediante consentimento.
+#
+# Este agente deve ser credenciado pelo Trust Anchor (Ministerio da Saude)
+# antes de poder emitir — ver governance/trust-anchor/scripts/onboard_entity.py.
+
+label: "Hospital-Emissor"
+
+auto-provision: true
+# askar-anoncreds (nao "askar" puro): exigido pelo perfil AskarAnonCreds
+# usado no filtro `anoncreds` de issue-credential-2.0 (ver acapy_client.py) —
+# com "askar" simples, a emissao falha com "AnonCreds interface requires
+# AskarAnonCreds profile".
+wallet-type: askar-anoncreds
+wallet-name: issuer_hospital_wallet
+
+log-level: info
+
+# DEV ONLY — em producao trocar por --admin-api-key e TLS reverso
+admin-insecure-mode: true
+
+# Emissores nao endossam por si; dependem do Trust Anchor
+endorser-protocol-role: author
+
+auto-accept-invites: true
+auto-accept-requests: true
+auto-ping-connection: true
+auto-respond-messages: true
+
+# Emissao de credenciais e feita explicitamente pelo services/fhir-vc-bridge
+# (via /issue-credential-2.0/send), entao as respostas automaticas de oferta
+# ficam desligadas para o fluxo de emissao ser controlado pelo bridge.
+auto-respond-credential-proposal: false
+auto-respond-credential-offer: false
+auto-respond-credential-request: false
+
+auto-verify-presentation: true
+monitor-ping: true
+preserve-exchange-records: true

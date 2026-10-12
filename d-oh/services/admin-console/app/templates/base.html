@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <title>{% block title %}D-OH Admin Console{% endblock %}</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0; background: #f6f7f9; color: #1a1a1a; }
+    nav { background: #14213d; padding: 0.75rem 1.5rem; display: flex; gap: 1.25rem; align-items: center; }
+    nav a { color: #e9ecef; text-decoration: none; font-size: 0.95rem; }
+    nav a:hover { text-decoration: underline; }
+    nav .brand { color: #fff; font-weight: 700; margin-right: 1rem; }
+    main { max-width: 960px; margin: 2rem auto; padding: 0 1.5rem; }
+    h1 { font-size: 1.4rem; }
+    h2 { font-size: 1.1rem; color: #333; }
+    table { width: 100%; border-collapse: collapse; margin: 1rem 0; background: #fff; }
+    th, td { text-align: left; padding: 0.5rem 0.7rem; border-bottom: 1px solid #e5e7eb; font-size: 0.9rem; }
+    th { background: #eef1f5; }
+    form.inline { display: inline; }
+    .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; padding: 1.25rem; margin-bottom: 1.25rem; }
+    label { display: block; margin-top: 0.75rem; font-size: 0.85rem; font-weight: 600; color: #333; }
+    input[type=text], input[type=datetime-local], select, textarea {
+      width: 100%; padding: 0.4rem; margin-top: 0.25rem; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9rem;
+      box-sizing: border-box;
+    }
+    button, input[type=submit] {
+      margin-top: 1rem; padding: 0.5rem 1rem; background: #14213d; color: #fff; border: none;
+      border-radius: 4px; cursor: pointer; font-size: 0.9rem;
+    }
+    button.danger { background: #b3261e; }
+    button.secondary { background: #6c757d; }
+    .error { background: #fdecea; border: 1px solid #f5c2c0; color: #7a1f1a; padding: 0.75rem; border-radius: 4px; margin: 1rem 0; }
+    .success { background: #eafaf0; border: 1px solid #b7ebc6; color: #1e6b3a; padding: 0.75rem; border-radius: 4px; margin: 1rem 0; }
+    pre { background: #0f172a; color: #d1e7ff; padding: 1rem; border-radius: 6px; overflow-x: auto; font-size: 0.8rem; }
+    .pill { display: inline-block; padding: 0.1rem 0.5rem; border-radius: 999px; font-size: 0.75rem; background: #e2e8f0; }
+    .pill.active { background: #d4f4dd; color: #1e6b3a; }
+    .pill.revoked { background: #fbdcdc; color: #7a1f1a; }
+    .hint { color: #666; font-size: 0.8rem; }
+  </style>
+</head>
+<body>
+  <nav>
+    <span class="brand">D-OH Admin</span>
+    <a href="/entities">Entidades</a>
+    <a href="/dids">DIDs / Wallets</a>
+    <a href="/connections">Conexoes</a>
+    <a href="/roles/onboard">Credenciar papel</a>
+    <a href="/ehr/issue">Emitir EHR</a>
+  </nav>
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

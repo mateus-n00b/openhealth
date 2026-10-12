@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}DIDs / Wallets — D-OH Admin{% endblock %}
+{% block content %}
+<h1>DIDs / wallets</h1>
+
+<form class="card" method="get" action="/dids">
+  <label>Agente</label>
+  <select name="agent" onchange="this.form.submit()">
+    {% for key, a in agents.items() %}
+    <option value="{{ key }}" {% if key == selected_agent %}selected{% endif %}>{{ a.label }}</option>
+    {% endfor %}
+  </select>
+</form>
+
+{% if error %}<div class="error">{{ error }}</div>{% endif %}
+
+<table>
+  <thead><tr><th>DID</th><th>Verkey</th><th>Postura</th></tr></thead>
+  <tbody>
+    {% for d in dids %}
+    <tr>
+      <td>{{ d.did }}</td>
+      <td>{{ d.verkey }}</td>
+      <td>{{ d.posture }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="3" class="hint">Nenhum DID local neste agente ainda.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<form class="card" method="post" action="/dids/create">
+  <h2>Criar novo DID</h2>
+  <label>Agente</label>
+  <select name="agent">
+    {% for key, a in agents.items() %}
+    <option value="{{ key }}" {% if key == selected_agent %}selected{% endif %}>{{ a.label }}</option>
+    {% endfor %}
+  </select>
+
+  <label><input type="checkbox" name="make_public" value="true" style="width:auto; display:inline-block;"> Tornar publico (registra no ledger)</label>
+
+  <button type="submit">Criar DID</button>
+</form>
+{% endblock %}

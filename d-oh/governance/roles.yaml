@@ -1,0 +1,67 @@
+# Hierarquia de governanca do D-OH (Secao 3.2 e Figura 2 do paper).
+#
+# Cada papel define quais acoes AnonCreds/Aries a entidade pode executar.
+# Este arquivo e a fonte de verdade legivel por humanos; e consumido por
+# governance/trust-anchor/scripts/onboard_entity.py para credenciar
+# entidades e por services/trust-registry para validar o papel registrado.
+
+trust_anchor:
+  role: ministerio_saude
+  description: >
+    Autoridade principal. Registra as demais entidades, define seus papeis,
+    audita e supervisiona a rede. Ancora de confianca (endorser) no ledger.
+  permissions:
+    - register_entity
+    - revoke_entity
+    - endorse_ledger_transactions
+    - issue_credential:EntityRoleCredential
+
+roles:
+  hospital:
+    can_issue:
+      - DiagnosticReportCredential
+      - AttestationCredential
+    can_verify: true
+    description: >
+      Emite exames/atestados via VC, registra e disponibiliza o historico
+      clinico do paciente, mediante consentimento. Atua tambem como
+      verificador para continuidade do cuidado.
+
+  clinica:
+    can_issue:
+      - DiagnosticReportCredential
+    can_verify: true
+    description: >
+      Emite exames e diagnosticos complementares; entidade intermediaria
+      entre hospitais e medicos.
+
+  laboratorio:
+    can_issue:
+      - DiagnosticReportCredential
+    can_verify: true
+    description: >
+      Emite laudos laboratoriais e exames especificos; pode validar exames
+      de terceiros (verificador).
+
+  medico:
+    can_issue:
+      - DiagnosticReportCredential
+      - PrescriptionCredential
+    can_verify: true
+    description: >
+      Papel central na interacao com o paciente: acessa/verifica historico
+      clinico mediante autorizacao, registra diagnosticos, prescricoes e
+      recomendacoes.
+
+  plano_saude:
+    can_issue: []
+    can_verify: true
+    description: >
+      Consome credenciais para fins de cobertura/autorizacao, sempre
+      mediante consentimento do titular.
+
+# Extensao futura (Secao 4, "Trabalhos futuros" do paper):
+#   guardiao:
+#     description: Delegacao de acesso/tutela digital para dependentes,
+#       menores de idade e idosos com baixa literacia digital.
+#     status: nao implementado neste esqueleto — ver README.md "Roadmap".

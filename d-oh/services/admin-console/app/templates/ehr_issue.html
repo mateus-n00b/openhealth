@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Emitir EHR — D-OH Admin{% endblock %}
+{% block content %}
+<h1>Emitir EHR simples (DiagnosticReportCredential)</h1>
+<p class="hint">
+  Chama services/fhir-vc-bridge, que hoje esta fixo no emissor <code>issuer-hospital</code>
+  (ver TODO de multi-emissor no codigo). Precisa de uma <code>connection_id</code> ja ativa entre
+  <code>issuer-hospital</code> e <code>holder-healthdid</code> — crie em <a href="/connections">Conexoes</a>.
+</p>
+
+{% if error %}<div class="error">{{ error }}</div>{% endif %}
+{% if result %}
+<div class="success">Credencial emitida. credential_exchange_id: <code>{{ result.credential_exchange_id }}</code></div>
+<pre>{{ result.fhir_report | tojson(indent=2) }}</pre>
+{% endif %}
+
+<form class="card" method="post" action="/ehr/issue">
+  <label>connection_id (issuer-hospital ↔ holder-healthdid)</label>
+  <input type="text" name="connection_id" required>
+
+  <label>DID do paciente (titular)</label>
+  <input type="text" name="did_paciente" placeholder="did:example:paciente:789" required>
+
+  <label>ID do laudo</label>
+  <input type="text" name="report_id" placeholder="EXM-2025-0001" required>
+
+  <label>Codigo LOINC</label>
+  <input type="text" name="loinc_code" placeholder="24727-0" required>
+
+  <label>Descricao (LOINC display)</label>
+  <input type="text" name="loinc_display" placeholder="Ressonancia Magnetica" required>
+
+  <label>Referencia do paciente (FHIR subject)</label>
+  <input type="text" name="subject_reference" placeholder="Patient/789" required>
+
+  <label>Referencia do profissional executor (opcional)</label>
+  <input type="text" name="performer_reference" placeholder="Practitioner/456">
+
+  <label>Data/hora do exame (effectiveDateTime, ISO 8601)</label>
+  <input type="text" name="effective_date_time" placeholder="2025-09-20T14:30:00Z" required>
+
+  <label>Data/hora de emissao (issued, ISO 8601)</label>
+  <input type="text" name="issued" placeholder="2025-09-21T09:00:00Z" required>
+
+  <button type="submit">Emitir credencial</button>
+</form>
+{% endblock %}

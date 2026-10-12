@@ -1,0 +1,48 @@
+# Agente ACA-Py do Ministerio da Saude (Trust Anchor — Fig. 2 do paper D-OH)
+#
+# Papel: ancora principal de confianca. Credencia hospitais, clinicas,
+# laboratorios, medicos e planos de saude emitindo `EntityRoleCredential`
+# (ver governance/roles.yaml e scripts/register_role_schema.py) e exerce
+# auditoria/supervisao via services/trust-registry.
+#
+# NOTA: wallet-key e admin-api-key sao injetados via CLI/.env
+# (docker-compose.yml), nunca commitados aqui.
+
+label: "Ministerio-da-Saude-TrustAnchor"
+
+auto-provision: true
+# askar-anoncreds (nao "askar" puro): exigido pelo perfil AskarAnonCreds
+# usado no filtro `anoncreds` de issue-credential-2.0 (ver acapy_client.py) —
+# com "askar" simples, a emissao falha com "AnonCreds interface requires
+# AskarAnonCreds profile".
+wallet-type: askar-anoncreds
+wallet-name: trust_anchor_wallet
+
+log-level: info
+
+# DEV ONLY — em producao trocar por --admin-api-key e TLS reverso (nginx/Traefik)
+admin-insecure-mode: true
+
+# O Trust Anchor atua como Endorser da rede: assina transacoes de escrita
+# no ledger em nome de emissores que ainda nao tem permissao direta.
+endorser-protocol-role: endorser
+auto-endorse-transactions: true
+
+# Convites publicos para credenciamento de novas entidades
+public-invites: true
+
+auto-accept-invites: true
+auto-accept-requests: true
+auto-ping-connection: true
+auto-respond-messages: true
+auto-verify-presentation: true
+
+# Suporte a credenciais AnonCreds (compatível com a wallet askar-anoncreds
+# citada no paper) e revogacao (createRevocationRegistry no modelo Indy-Besu)
+auto-respond-credential-proposal: true
+auto-respond-credential-offer: false
+auto-respond-credential-request: false
+auto-store-credential: true
+
+monitor-ping: true
+preserve-exchange-records: true

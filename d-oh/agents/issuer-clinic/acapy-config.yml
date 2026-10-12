@@ -1,0 +1,34 @@
+# Agente ACA-Py do emissor "Clinica" (Secao 3.2 do paper D-OH)
+#
+# Papel: emite exames e diagnosticos complementares; atua como entidade
+# intermediaria entre hospitais e medicos, apoiando a linha de cuidado.
+
+label: "Clinica-Emissora"
+
+auto-provision: true
+# askar-anoncreds (nao "askar" puro): exigido pelo perfil AskarAnonCreds
+# usado no filtro `anoncreds` de issue-credential-2.0 (ver acapy_client.py) —
+# com "askar" simples, a emissao falha com "AnonCreds interface requires
+# AskarAnonCreds profile".
+wallet-type: askar-anoncreds
+wallet-name: issuer_clinic_wallet
+
+log-level: info
+
+# DEV ONLY — em producao trocar por --admin-api-key e TLS reverso
+admin-insecure-mode: true
+
+endorser-protocol-role: author
+
+auto-accept-invites: true
+auto-accept-requests: true
+auto-ping-connection: true
+auto-respond-messages: true
+
+auto-respond-credential-proposal: false
+auto-respond-credential-offer: false
+auto-respond-credential-request: false
+
+auto-verify-presentation: true
+monitor-ping: true
+preserve-exchange-records: true

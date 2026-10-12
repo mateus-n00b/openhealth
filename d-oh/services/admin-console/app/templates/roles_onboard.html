@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Credenciar papel — D-OH Admin{% endblock %}
+{% block content %}
+<h1>Credenciar papel (onboarding de entidade)</h1>
+<p class="hint">
+  Faz tudo de uma vez: cria conexao DIDComm entre o Trust Anchor e o agente escolhido,
+  emite a EntityRoleCredential e registra a entidade no trust-registry.
+  Pre-requisito: tanto o Trust Anchor quanto o agente escolhido precisam ja ter um DID publico
+  (crie em <a href="/dids">DIDs / wallets</a>) e o schema/cred-def EntityRoleCredential precisa
+  existir (rode <code>governance/trust-anchor/scripts/register_role_schema.py</code> uma vez).
+</p>
+
+{% if error %}<div class="error">{{ error }}</div>{% endif %}
+{% if result %}
+<div class="success">
+  Entidade credenciada. DID: <code>{{ result.entity_did }}</code><br>
+  Trust Anchor DID: <code>{{ result.trust_anchor_did }}</code><br>
+  Conexao: <code>{{ result.connection_id }}</code>
+</div>
+{% endif %}
+
+<form class="card" method="post" action="/roles/onboard">
+  <label>Entidade a credenciar</label>
+  <select name="entity_agent" required>
+    {% for key, a in agents.items() %}
+      {% if key not in ("trust-anchor", "holder-healthdid") %}
+      <option value="{{ key }}">{{ a.label }}</option>
+      {% endif %}
+    {% endfor %}
+  </select>
+
+  <label>Nome da entidade</label>
+  <input type="text" name="entity_name" placeholder="Hospital Geral do Estado" required>
+
+  <label>Papel</label>
+  <select name="role" required>
+    {% for r in roles %}<option value="{{ r }}">{{ r }}</option>{% endfor %}
+  </select>
+
+  <button type="submit">Credenciar</button>
+</form>
+{% endblock %}
